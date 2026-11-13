@@ -3,6 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #0f172a;
+  --ease-out-cubic: cubic-bezier(.2, .6, .35, 1);
+  --ease-out-quart: cubic-bezier(.165, .84, .44, 1);
+  --ease-in-out-quart: cubic-bezier(.8, 0, .2, 1);
 }
 
 @theme inline {
@@ -97,6 +100,139 @@ body {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Lenis Smooth Scroll Engine */
+html.lenis, html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Avalanche Marquee Keyframe */
+@keyframes marqueeScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marqueeScroll 32s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Floating Ambient Motion */
+@keyframes floatSlow {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(16px, -20px) scale(1.05); }
+}
+
+@keyframes floatSlowReverse {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-20px, 16px) scale(0.95); }
+}
+
+.animate-float-slow {
+  animation: floatSlow 12s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+  animation: floatSlowReverse 16s ease-in-out infinite;
+}
+
+/* Avalanche Signature Medical Button Hover Fill Pill */
+.btn-avalanche-primary {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  transition: all 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
+  box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.25);
+}
+
+.btn-avalanche-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 6px;
+  background: linear-gradient(135deg, #0d9488, #059669);
+  z-index: -1;
+  transition: width 0.45s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.btn-avalanche-primary:hover::before {
+  width: 100%;
+}
+
+.btn-avalanche-primary:hover {
+  box-shadow: 0 8px 24px 0 rgba(37, 99, 235, 0.35);
+}
+
+.btn-avalanche-outline {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  transition: all 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.btn-avalanche-outline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 4px;
+  background: #f1f5f9;
+  z-index: -1;
+  transition: width 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.btn-avalanche-outline:hover::before {
+  width: 100%;
+}
+
+/* Medical Shimmer Highlight Sweep */
+@keyframes shimmerText {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.text-shimmer-sweep {
+  background: linear-gradient(90deg, #1d4ed8 0%, #0d9488 25%, #2563eb 50%, #0d9488 75%, #1d4ed8 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmerText 7s linear infinite;
+}
+
+/* Clinical Glow Card Elevation */
+.clinical-card-glow {
+  position: relative;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
+  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.clinical-card-glow:hover {
+  border-color: rgba(37, 99, 235, 0.35);
+  box-shadow: 0 12px 32px -8px rgba(37, 99, 235, 0.12);
 }
 
 /* Safe area padding for mobile sticky elements */

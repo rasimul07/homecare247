@@ -8,6 +8,16 @@ dist/
 build/
 .next/
 out/
+*.tsbuildinfo
+
+# Database & Uploads
+*.db
+*.db-journal
+uploads/*
+!uploads/.gitkeep
+!uploads/resumes/
+uploads/resumes/*
+!uploads/resumes/.gitkeep
 
 # Environment Variables
 .env

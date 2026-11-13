@@ -4,6 +4,7 @@ import React from 'react';
 import dynamic from 'next/dynamic';
 import { Navbar } from '@/components/Navbar';
 import { Hero } from '@/components/Hero';
+import { TrustMarquee } from '@/components/TrustMarquee';
 import { EmergencyBanner } from '@/components/EmergencyBanner';
 import { ServicesSection } from '@/components/ServicesSection';
 import { WhyChooseUs } from '@/components/WhyChooseUs';
@@ -33,6 +34,7 @@ export default function HomePage() {
       <Navbar />
       <main className="flex-1 pb-16 sm:pb-0 w-full max-w-full overflow-x-hidden">
         <Hero />
+        <TrustMarquee />
         <EmergencyBanner />
         <ServicesSection />
         <ServiceCostCalculator />

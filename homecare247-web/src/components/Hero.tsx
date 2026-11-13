@@ -6,6 +6,8 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useLocation } from '@/context/LocationContext';
 import { useBooking } from '@/context/BookingContext';
 import { SERVICES } from '@/data/services';
+import { SpotlightCard } from '@/components/SpotlightCard';
+import { RevealOnScroll } from '@/components/RevealOnScroll';
 import {
   ShieldCheck,
   Star,
@@ -14,7 +16,10 @@ import {
   MapPin,
   CheckCircle2,
   Sparkles,
-  HeartHandshake
+  HeartHandshake,
+  ArrowRight,
+  Clock,
+  Users
 } from 'lucide-react';
 
 export function Hero() {
@@ -43,98 +48,114 @@ export function Hero() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-blue-50/70 via-white to-slate-50 pt-6 pb-14 sm:pt-12 sm:pb-20 lg:pt-16 lg:pb-24 border-b border-slate-100 w-full max-w-full">
-      {/* Decorative background blurs strictly bounded */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-0 -left-10 w-64 sm:w-96 h-64 sm:h-96 bg-blue-400/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 -right-10 w-64 sm:w-96 h-64 sm:h-96 bg-teal-400/10 rounded-full blur-3xl" />
+    <section className="relative overflow-hidden bg-gradient-to-b from-blue-50/60 via-white to-slate-50/80 pt-6 pb-14 sm:pt-12 sm:pb-20 lg:pt-14 lg:pb-22 border-b border-slate-200/80 w-full max-w-full font-sans">
+      {/* Soft Ambient Medical Background Lights */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 select-none">
+        <div className="absolute top-0 -left-12 w-80 sm:w-[32rem] h-80 sm:h-[32rem] bg-blue-400/10 rounded-full blur-3xl animate-float-slow" />
+        <div className="absolute bottom-10 -right-12 w-80 sm:w-[32rem] h-80 sm:h-[32rem] bg-teal-400/10 rounded-full blur-3xl animate-float-reverse" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+      <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 w-full relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Left Column: Headline, Trust Signals & Highlights (7 cols) */}
           <div className="lg:col-span-7">
             {/* Top compliance badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-100/90 border border-blue-200 text-blue-900 text-xs font-bold tracking-wide backdrop-blur-sm mb-4 sm:mb-5">
-              <Sparkles className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-              <span>{t('hero_badge')}</span>
-            </div>
+            <RevealOnScroll delayMs={0}>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-100/90 border border-blue-200/90 text-blue-950 text-xs font-bold tracking-wide backdrop-blur-sm mb-4 sm:mb-5 shadow-xs">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="text-blue-800 font-bold">24/7 Clinical Emergency Protocol</span>
+                <span className="text-slate-300">•</span>
+                <span className="text-blue-900 font-extrabold">{t('hero_badge')}</span>
+              </div>
+            </RevealOnScroll>
 
             {/* Main Headline customized by City */}
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-black text-slate-900 tracking-tight leading-[1.18] sm:leading-[1.14] mb-4 sm:mb-5">
-              {t('hero_title_prefix')}{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-teal-600 to-blue-700">
-                {t('hero_title_highlight')}
-              </span>{' '}
-              <span className="inline-block">
-                {t('hero_title_in')} {selectedCity.name}
-              </span>
-            </h1>
+            <RevealOnScroll delayMs={80}>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-black text-slate-950 tracking-tight leading-[1.14] sm:leading-[1.1] mb-4 sm:mb-5">
+                <span className="block">{t('hero_title_prefix')}</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-blue-700 to-teal-600">
+                  {t('hero_title_highlight')}
+                </span>{' '}
+                <span className="inline-block text-slate-900">
+                  {t('hero_title_in')} {selectedCity.name}
+                </span>
+              </h1>
+            </RevealOnScroll>
 
             {/* Subtitle */}
-            <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl mb-6 sm:mb-8 font-normal">
-              {t('hero_subtitle')}
-            </p>
+            <RevealOnScroll delayMs={160}>
+              <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl mb-6 sm:mb-8 font-normal">
+                {t('hero_subtitle')}
+              </p>
+            </RevealOnScroll>
 
             {/* Dynamic Local Availability Badge */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 mb-6 sm:mb-8">
-              <div className="flex items-center gap-3.5">
-                <div className="relative flex h-3.5 w-3.5 shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500"></span>
-                </div>
-                <div>
-                  <div className="text-sm font-extrabold text-slate-900">
-                    {selectedCity.availableStaffCount} Registered Staff on Standby in {selectedCity.name}
+            <RevealOnScroll delayMs={240}>
+              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 mb-6 sm:mb-8 hover:border-blue-300 transition-all duration-300">
+                <div className="flex items-center gap-3.5">
+                  <div className="relative flex h-3.5 w-3.5 shrink-0">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500"></span>
                   </div>
-                  <div className="text-xs text-slate-500 font-medium mt-0.5">
-                    Avg response: ~{selectedCity.avgResponseMinutes} mins to your doorstep
+                  <div>
+                    <div className="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
+                      <span>{selectedCity.availableStaffCount} Registered Staff on Standby in {selectedCity.name}</span>
+                    </div>
+                    <div className="text-xs text-slate-500 font-medium mt-0.5">
+                      Avg response: ~{selectedCity.avgResponseMinutes} mins to your doorstep • 100% Police Verified
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <button
-                onClick={() => setIsCityModalOpen(true)}
-                className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1.5 shrink-0 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-xl border border-blue-200 transition self-end sm:self-auto"
-              >
-                <MapPin className="w-3.5 h-3.5" />
-                <span>Change City</span>
-              </button>
-            </div>
+                <button
+                  onClick={() => setIsCityModalOpen(true)}
+                  className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1.5 shrink-0 bg-blue-50 hover:bg-blue-100 px-3.5 py-2 rounded-xl border border-blue-200 transition-all self-end sm:self-auto cursor-pointer"
+                >
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span>Change City</span>
+                </button>
+              </div>
+            </RevealOnScroll>
 
             {/* CTA Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
-              <button
-                onClick={() => openBooking('skilled-nursing')}
-                className="px-7 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white font-black text-base shadow-lg shadow-blue-500/25 hover:shadow-xl transition transform hover:-translate-y-0.5 active:translate-y-0 text-center"
-              >
-                {t('hero_cta_book')}
-              </button>
-
-              <div className="grid grid-cols-2 sm:flex sm:items-center gap-2.5">
-                <a
-                  href={`tel:${selectedCity.emergencyPhone}`}
-                  className="px-4 py-3.5 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-sm border border-slate-200 shadow-xs flex items-center justify-center gap-2 transition"
+            <RevealOnScroll delayMs={320}>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
+                <button
+                  onClick={() => openBooking('skilled-nursing')}
+                  className="group px-7 py-4 rounded-xl bg-gradient-to-r from-blue-600 via-blue-700 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-blue-500/25 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 text-center flex items-center justify-center gap-2.5 cursor-pointer"
                 >
-                  <Phone className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span className="truncate">{selectedCity.emergencyPhone}</span>
-                </a>
+                  <span>{t('hero_cta_book')}</span>
+                  <ArrowRight className="w-4 h-4 text-white group-hover:translate-x-1.5 transition-transform duration-300" />
+                </button>
 
-                <a
-                  href={`https://wa.me/${selectedCity.whatsappPhone}?text=Hi%20HomeCare247,%20I%20am%20looking%20for%20home%20nursing%20care%20in%20${selectedCity.name}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-3.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-sm flex items-center justify-center gap-2 transition"
-                  title="WhatsApp Consultation"
-                >
-                  <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>WhatsApp</span>
-                </a>
+                <div className="grid grid-cols-2 sm:flex sm:items-center gap-2.5">
+                  <a
+                    href={`tel:${selectedCity.emergencyPhone}`}
+                    className="px-4 py-3.5 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-sm border border-slate-200 shadow-xs flex items-center justify-center gap-2 transition hover:border-slate-300"
+                  >
+                    <Phone className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="truncate">{selectedCity.emergencyPhone}</span>
+                  </a>
+
+                  <a
+                    href={`https://wa.me/${selectedCity.whatsappPhone}?text=Hi%20HomeCare247,%20I%20am%20looking%20for%20home%20nursing%20care%20in%20${selectedCity.name}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-3.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-sm flex items-center justify-center gap-2 transition"
+                    title="WhatsApp Consultation"
+                  >
+                    <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>WhatsApp</span>
+                  </a>
+                </div>
               </div>
-            </div>
+            </RevealOnScroll>
 
-            {/* AI Generated Real Hero Image Showcase */}
-            <div className="relative rounded-3xl overflow-hidden border border-slate-200/90 shadow-xl mb-6 sm:mb-8 group bg-slate-900">
+            {/* Hero Image Showcase */}
+            <div className="relative rounded-3xl overflow-hidden border border-slate-200/90 shadow-xl mb-6 sm:mb-8 group bg-slate-100">
               <div className="relative aspect-[16/9] sm:aspect-[21/10] w-full overflow-hidden">
                 <Image
                   src="/images/hero-homecare.jpg"
@@ -148,7 +169,7 @@ export function Hero() {
 
                 {/* Floating Glassmorphic Badges */}
                 <div className="absolute top-3 left-3 sm:top-4 sm:left-4">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/80 backdrop-blur-md border border-white/20 text-white text-[11px] sm:text-xs font-semibold shadow-lg">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/95 backdrop-blur-md border border-white/60 text-slate-800 text-[11px] sm:text-xs font-bold shadow-lg">
                     <span className="relative flex h-2 w-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -198,33 +219,50 @@ export function Hero() {
               </div>
             </div>
 
-            {/* Live Trust Metrics Row */}
+            {/* Live Trust Metrics Bento Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-2">
-              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-100 shadow-xs">
-                <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{t('hero_trust_stat_1')}</div>
-                <div className="text-xs text-slate-500 font-semibold mt-1">{t('hero_trust_label_1')}</div>
-              </div>
-              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-100 shadow-xs">
-                <div className="text-2xl sm:text-3xl font-black text-blue-600 tracking-tight">{t('hero_trust_stat_2')}</div>
-                <div className="text-xs text-slate-500 font-semibold mt-1">{t('hero_trust_label_2')}</div>
-              </div>
-              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-100 shadow-xs">
+              <SpotlightCard className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+                <div className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+                  {t('hero_trust_stat_1')}
+                </div>
+                <div className="text-xs text-slate-500 font-semibold mt-1">
+                  {t('hero_trust_label_1')}
+                </div>
+              </SpotlightCard>
+
+              <SpotlightCard className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+                <div className="text-2xl sm:text-3xl font-black text-blue-600 tracking-tight">
+                  {t('hero_trust_stat_2')}
+                </div>
+                <div className="text-xs text-slate-500 font-semibold mt-1">
+                  {t('hero_trust_label_2')}
+                </div>
+              </SpotlightCard>
+
+              <SpotlightCard className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
                 <div className="text-2xl sm:text-3xl font-black text-amber-500 tracking-tight flex items-center gap-1">
                   <span>{t('hero_trust_stat_3')}</span>
                   <Star className="w-4 h-4 fill-amber-400 text-amber-400 shrink-0" />
                 </div>
-                <div className="text-xs text-slate-500 font-semibold mt-1">{t('hero_trust_label_3')}</div>
-              </div>
-              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-100 shadow-xs">
-                <div className="text-2xl sm:text-3xl font-black text-emerald-600 tracking-tight">{t('hero_trust_stat_4')}</div>
-                <div className="text-xs text-slate-500 font-semibold mt-1">{t('hero_trust_label_4')}</div>
-              </div>
+                <div className="text-xs text-slate-500 font-semibold mt-1">
+                  {t('hero_trust_label_3')}
+                </div>
+              </SpotlightCard>
+
+              <SpotlightCard className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+                <div className="text-2xl sm:text-3xl font-black text-emerald-600 tracking-tight">
+                  {t('hero_trust_stat_4')}
+                </div>
+                <div className="text-xs text-slate-500 font-semibold mt-1">
+                  {t('hero_trust_label_4')}
+                </div>
+              </SpotlightCard>
             </div>
           </div>
 
           {/* Right Column: High-Converting Quick Booking / Quote Card (5 cols) */}
           <div className="lg:col-span-5">
-            <div className="relative bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-200/90 overflow-hidden">
+            <SpotlightCard className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-200/90">
               {/* Card top gradient bar */}
               <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-blue-600 via-teal-500 to-emerald-500" />
 
@@ -233,7 +271,7 @@ export function Hero() {
                   <HeartHandshake className="w-3.5 h-3.5 text-blue-600" />
                   <span>Immediate Medical Callback</span>
                 </div>
-                <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                <h3 className="text-2xl font-black text-slate-950 tracking-tight">
                   {t('quick_quote_title')}
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-500 mt-1.5 leading-relaxed">
@@ -261,7 +299,7 @@ export function Hero() {
                       setFormSubmitted(false);
                       setQuickForm({ name: '', phone: '', serviceId: 'skilled-nursing', shift: '12d', area: '' });
                     }}
-                    className="text-xs font-bold text-blue-600 hover:underline pt-2 inline-block"
+                    className="text-xs font-bold text-blue-600 hover:underline pt-2 inline-block cursor-pointer"
                   >
                     Submit another requirement
                   </button>
@@ -295,7 +333,7 @@ export function Hero() {
                       <button
                         type="button"
                         onClick={() => setQuickForm({ ...quickForm, shift: '12d' })}
-                        className={`p-2.5 rounded-xl border text-left font-bold transition ${
+                        className={`p-2.5 rounded-xl border text-left font-bold transition cursor-pointer ${
                           quickForm.shift === '12d'
                             ? 'bg-blue-50 border-blue-500 text-blue-800 shadow-xs'
                             : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
@@ -306,7 +344,7 @@ export function Hero() {
                       <button
                         type="button"
                         onClick={() => setQuickForm({ ...quickForm, shift: '24h' })}
-                        className={`p-2.5 rounded-xl border text-left font-bold transition ${
+                        className={`p-2.5 rounded-xl border text-left font-bold transition cursor-pointer ${
                           quickForm.shift === '24h'
                             ? 'bg-blue-50 border-blue-500 text-blue-800 shadow-xs'
                             : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
@@ -357,7 +395,7 @@ export function Hero() {
                       <button
                         type="button"
                         onClick={() => setIsCityModalOpen(true)}
-                        className="w-full px-3.5 py-3 rounded-xl border border-slate-200 bg-slate-50 text-xs sm:text-sm font-bold text-slate-800 flex items-center justify-between text-left hover:bg-slate-100 transition"
+                        className="w-full px-3.5 py-3 rounded-xl border border-slate-200 bg-slate-50 text-xs sm:text-sm font-bold text-slate-800 flex items-center justify-between text-left hover:bg-slate-100 transition cursor-pointer"
                       >
                         <span className="truncate">{selectedCity.name}</span>
                         <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
@@ -382,7 +420,7 @@ export function Hero() {
                   <button
                     type="submit"
                     disabled={formLoading}
-                    className="w-full py-4 bg-gradient-to-r from-blue-600 via-teal-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white font-black rounded-xl text-base shadow-xl shadow-blue-500/25 transition transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 mt-2"
+                    className="w-full py-4 bg-gradient-to-r from-blue-600 via-blue-700 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white font-extrabold rounded-xl text-base shadow-lg shadow-blue-500/25 transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 mt-2 cursor-pointer"
                   >
                     {formLoading ? t('quick_btn_submitting') : t('quick_btn_submit')}
                   </button>
@@ -392,7 +430,7 @@ export function Hero() {
                   </p>
                 </form>
               )}
-            </div>
+            </SpotlightCard>
           </div>
         </div>
       </div>

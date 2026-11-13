@@ -7,6 +7,7 @@ import { BookingProvider } from '@/context/BookingContext';
 import { Modals } from '@/components/Modals';
 import { StickyBottomBar } from '@/components/StickyBottomBar';
 import { StructuredData } from '@/components/StructuredData';
+import { SmoothScroll } from '@/components/SmoothScroll';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -105,6 +106,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} scroll-smooth antialiased`}>
       <body className="min-h-screen flex flex-col bg-white text-slate-900 font-sans selection:bg-blue-600 selection:text-white">
+        <SmoothScroll />
         <LanguageProvider>
           <LocationProvider>
             <BookingProvider>

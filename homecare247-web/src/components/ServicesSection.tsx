@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useLanguage } from '@/context/LanguageContext';
 import { useLocation } from '@/context/LocationContext';
 import { useBooking } from '@/context/BookingContext';
 import { SERVICES, SERVICE_CATEGORIES } from '@/data/services';
+import { SpotlightCard } from '@/components/SpotlightCard';
 import {
   Stethoscope,
   HeartHandshake,
@@ -15,12 +16,12 @@ import {
   PackageCheck,
   FlaskConical,
   Baby,
-  CheckCircle2,
   ArrowRight,
+  ArrowLeft,
   Phone,
-  ChevronDown,
-  ChevronUp,
-  Sparkles
+  Sparkles,
+  ShieldCheck,
+  Clock
 } from 'lucide-react';
 
 export function ServicesSection() {
@@ -28,203 +29,377 @@ export function ServicesSection() {
   const { selectedCity } = useLocation();
   const { openBooking } = useBooking();
   const [activeCategory, setActiveCategory] = useState('all');
-  const [expandedProcedures, setExpandedProcedures] = useState<Record<string, boolean>>({});
+
+  // Carousel Slider Refs and State
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+
+  // Mouse drag-to-scroll state
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+  const hasMovedRef = useRef(false);
 
   const filteredServices = activeCategory === 'all'
     ? SERVICES
     : SERVICES.filter((s) => s.category === activeCategory);
 
-  const toggleProcedures = (id: string) => {
-    setExpandedProcedures((prev) => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
-  };
-
   const getServiceIcon = (iconName: string) => {
     switch (iconName) {
       case 'Stethoscope':
-        return <Stethoscope className="w-6 h-6 text-blue-600" />;
+        return <Stethoscope className="w-4 h-4 text-blue-600" />;
       case 'HeartHandshake':
-        return <HeartHandshake className="w-6 h-6 text-teal-600" />;
+        return <HeartHandshake className="w-4 h-4 text-teal-600" />;
       case 'Activity':
-        return <Activity className="w-6 h-6 text-rose-600" />;
+        return <Activity className="w-4 h-4 text-rose-600" />;
       case 'ShieldPlus':
-        return <ShieldPlus className="w-6 h-6 text-indigo-600" />;
+        return <ShieldPlus className="w-4 h-4 text-indigo-600" />;
       case 'UserCheck':
-        return <UserCheck className="w-6 h-6 text-amber-600" />;
+        return <UserCheck className="w-4 h-4 text-amber-600" />;
       case 'PackageCheck':
-        return <PackageCheck className="w-6 h-6 text-purple-600" />;
+        return <PackageCheck className="w-4 h-4 text-purple-600" />;
       case 'FlaskConical':
-        return <FlaskConical className="w-6 h-6 text-cyan-600" />;
+        return <FlaskConical className="w-4 h-4 text-cyan-600" />;
       case 'Baby':
-        return <Baby className="w-6 h-6 text-pink-600" />;
+        return <Baby className="w-4 h-4 text-pink-600" />;
       default:
-        return <Stethoscope className="w-6 h-6 text-blue-600" />;
+        return <Stethoscope className="w-4 h-4 text-blue-600" />;
     }
   };
 
-  return (
-    <section id="services" className="py-12 sm:py-20 lg:py-24 bg-slate-50/60 w-full max-w-full overflow-hidden">
-      <div className="max-w-7xl mx-auto px-3.5 sm:px-6 w-full">
-        {/* Section Heading */}
-        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-bold mb-3">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Clinical Excellence at Home</span>
-          </div>
-          <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
-            {t('services_heading')}
-          </h2>
-          <p className="text-slate-600 text-xs sm:text-base mt-2">
-            {t('services_sub')} Available 24/7 across {selectedCity.name}.
-          </p>
+  // Scroll listener to update progress bar and arrow states
+  const updateScrollState = useCallback(() => {
+    const el = sliderRef.current;
+    if (!el) return;
 
-          {/* Category Filter Pills (Swipable on mobile, wrapped on desktop) */}
-          <div className="mt-5 sm:mt-8 overflow-x-auto no-scrollbar flex items-center sm:flex-wrap sm:justify-center gap-2 pb-2 px-1 w-full max-w-full">
-            {SERVICE_CATEGORIES.map((cat) => (
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    if (maxScroll <= 0) {
+      setScrollProgress(100);
+      setCanScrollLeft(false);
+      setCanScrollRight(false);
+      setActiveSlideIndex(0);
+      return;
+    }
+
+    const currentScroll = el.scrollLeft;
+    const progress = Math.min(100, Math.max(0, (currentScroll / maxScroll) * 100));
+    setScrollProgress(progress);
+    setCanScrollLeft(currentScroll > 15);
+    setCanScrollRight(currentScroll < maxScroll - 15);
+
+    const cardEl = el.firstElementChild as HTMLElement;
+    const cardWidth = cardEl ? cardEl.offsetWidth + 20 : 420;
+    const approxIndex = Math.round(currentScroll / cardWidth);
+    setActiveSlideIndex(Math.min(filteredServices.length - 1, Math.max(0, approxIndex)));
+  }, [filteredServices.length]);
+
+  useEffect(() => {
+    const el = sliderRef.current;
+    if (!el) return;
+
+    updateScrollState();
+    el.addEventListener('scroll', updateScrollState, { passive: true });
+    window.addEventListener('resize', updateScrollState);
+
+    return () => {
+      el.removeEventListener('scroll', updateScrollState);
+      window.removeEventListener('resize', updateScrollState);
+    };
+  }, [updateScrollState, activeCategory]);
+
+  const scrollSlider = (direction: 'left' | 'right') => {
+    const el = sliderRef.current;
+    if (!el) return;
+
+    const cardEl = el.firstElementChild as HTMLElement;
+    const cardWidth = cardEl ? cardEl.offsetWidth + 20 : 420;
+    const amount = direction === 'left' ? -cardWidth : cardWidth;
+    el.scrollBy({ left: amount, behavior: 'smooth' });
+  };
+
+  const handleCategorySelect = (catId: string) => {
+    setActiveCategory(catId);
+    if (sliderRef.current) {
+      sliderRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const el = sliderRef.current;
+    if (!el) return;
+    isDraggingRef.current = true;
+    hasMovedRef.current = false;
+    startXRef.current = e.pageX - el.offsetLeft;
+    scrollLeftRef.current = el.scrollLeft;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDraggingRef.current) return;
+    const el = sliderRef.current;
+    if (!el) return;
+
+    const x = e.pageX - el.offsetLeft;
+    const walk = (x - startXRef.current) * 1.3;
+    if (Math.abs(walk) > 6) {
+      hasMovedRef.current = true;
+    }
+    el.scrollLeft = scrollLeftRef.current - walk;
+  };
+
+  const handleMouseUpOrLeave = () => {
+    isDraggingRef.current = false;
+  };
+
+  const handleCardClick = (serviceId: string) => {
+    if (hasMovedRef.current) return;
+    openBooking(serviceId);
+  };
+
+  return (
+    <section
+      id="services"
+      className="py-6 sm:py-8 lg:py-10 bg-slate-50/70 text-slate-900 w-full max-w-full overflow-hidden relative border-y border-slate-200/80 font-sans select-none min-h-[580px] lg:min-h-[640px] lg:max-h-[820px] flex flex-col justify-between"
+    >
+      {/* Background Ambient Radial Glows (Hospital White & Soft Medical Blue) */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-100/50 rounded-full blur-[130px] pointer-events-none -mr-40 -mt-40" />
+      <div className="absolute bottom-0 left-0 w-[450px] h-[450px] bg-teal-100/40 rounded-full blur-[130px] pointer-events-none -ml-40 -mb-40" />
+
+      {/* Main Contained Wrapper - Fits within standard screen height */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10 flex flex-col justify-between h-full flex-1">
+        
+        {/* Compact Header Row: Stacked Title + Filter Pills + Arrow Controls */}
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 sm:gap-4 pb-3 border-b border-slate-200/80 shrink-0">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold tracking-wider uppercase mb-1.5 shadow-xs">
+              <Sparkles className="w-3 h-3 text-blue-600" />
+              <span>Hospital Protocols • 24/7 Standby in {selectedCity.name}</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-950 tracking-tight uppercase leading-[1.08]">
+              Comprehensive Care{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-teal-600">
+                Clinical Impact
+              </span>
+            </h2>
+          </div>
+
+          {/* Right: Category Pills & Navigation Arrows */}
+          <div className="flex items-center gap-3 self-start md:self-end overflow-hidden max-w-full">
+            {/* Category Filter Pills (Scrollable on mobile) */}
+            <div className="overflow-x-auto no-scrollbar flex items-center gap-1.5 py-1 max-w-[260px] sm:max-w-[420px] lg:max-w-none">
+              {SERVICE_CATEGORIES.map((cat) => {
+                const isSelected = activeCategory === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => handleCategorySelect(cat.id)}
+                    className={`px-3 py-1 rounded-full text-xs font-bold transition-all duration-200 shrink-0 whitespace-nowrap cursor-pointer border ${
+                      isSelected
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-500/20'
+                        : 'bg-white text-slate-700 hover:text-blue-600 hover:bg-slate-100 border-slate-200'
+                    }`}
+                  >
+                    <span>{t(cat.labelKey)}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Circular Navigation Buttons */}
+            <div className="hidden sm:flex items-center gap-2 shrink-0 pl-2 border-l border-slate-200">
               <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition shrink-0 whitespace-nowrap ${
-                  activeCategory === cat.id
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
-                    : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                type="button"
+                onClick={() => scrollSlider('left')}
+                disabled={!canScrollLeft}
+                aria-label="Previous service"
+                className={`w-9 h-9 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
+                  canScrollLeft
+                    ? 'border-slate-300 hover:border-blue-600 bg-white text-slate-700 hover:text-blue-600 hover:bg-blue-50/50 shadow-xs'
+                    : 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed opacity-40'
                 }`}
               >
-                {t(cat.labelKey)}
+                <ArrowLeft className="w-3.5 h-3.5" />
               </button>
+
+              <button
+                type="button"
+                onClick={() => scrollSlider('right')}
+                disabled={!canScrollRight}
+                aria-label="Next service"
+                className={`w-9 h-9 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
+                  canScrollRight
+                    ? 'border-slate-300 hover:border-blue-600 bg-white text-slate-700 hover:text-blue-600 hover:bg-blue-50/50 shadow-xs'
+                    : 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed opacity-40'
+                }`}
+              >
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+
+              <div className="text-[11px] font-bold text-slate-500 pl-1 shrink-0">
+                <span className="text-slate-900 font-extrabold">{String(activeSlideIndex + 1).padStart(2, '0')}</span>
+                <span className="text-slate-400 mx-0.5">/</span>
+                <span>{String(filteredServices.length).padStart(2, '0')}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ========================================================
+            CARD DISPLAY AREA (White Theme: Screen-Height Fitted)
+            ======================================================== */}
+        <div className="my-auto py-3">
+          <div
+            ref={sliderRef}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUpOrLeave}
+            onMouseLeave={handleMouseUpOrLeave}
+            className="flex gap-5 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory py-1 cursor-grab active:cursor-grabbing w-full"
+          >
+            {filteredServices.map((service) => (
+              <div
+                key={service.id}
+                onClick={() => handleCardClick(service.id)}
+                className="w-[85vw] sm:w-[360px] md:w-[390px] lg:w-[420px] shrink-0 snap-start flex flex-col justify-between group select-none"
+              >
+                <SpotlightCard
+                  spotlightColor="rgba(37, 99, 235, 0.08)"
+                  className="h-full bg-white rounded-2xl border border-slate-200/90 hover:border-blue-400 transition-all duration-300 shadow-sm hover:shadow-xl flex flex-col justify-between overflow-hidden"
+                >
+                  <div>
+                    {/* Visual 16:9 Image Header */}
+                    {service.imageUrl && (
+                      <div className="relative h-40 sm:h-44 w-full overflow-hidden bg-slate-100">
+                        <Image
+                          src={service.imageUrl}
+                          alt={t(service.titleKey)}
+                          fill
+                          sizes="(max-width: 768px) 85vw, 420px"
+                          className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent" />
+
+                        {/* Top Badges */}
+                        <div className="absolute top-2.5 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">
+                          <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-white/95 text-slate-800 border border-white/20 shadow-sm backdrop-blur-md uppercase tracking-wider">
+                            Hospital Protocol
+                          </span>
+                          {service.badge && (
+                            <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-blue-600 text-white shadow-sm border border-white/20 backdrop-blur-md">
+                              {service.badge}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Bottom Overlay Info */}
+                        <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between pointer-events-none">
+                          <div className="w-8 h-8 rounded-lg bg-white/95 backdrop-blur-md border border-slate-100 flex items-center justify-center p-1.5 shadow-md">
+                            {getServiceIcon(service.iconName)}
+                          </div>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/90 text-blue-700 border border-white/30 backdrop-blur-md shadow-xs">
+                            ⏱ ~{selectedCity.avgResponseMinutes}m Dispatch
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Card Body - White Theme */}
+                    <div className="p-4 sm:p-5">
+                      <h3 className="text-base sm:text-lg font-black text-slate-950 tracking-tight uppercase group-hover:text-blue-600 transition-colors leading-snug line-clamp-1">
+                        {t(service.titleKey)}
+                      </h3>
+                      <p className="text-[11px] text-blue-600 font-bold mt-0.5 line-clamp-1">
+                        {t(service.subtitleKey)}
+                      </p>
+
+                      <p className="text-xs text-slate-600 mt-2 leading-relaxed line-clamp-2">
+                        {t(service.descriptionKey)}
+                      </p>
+
+                      {/* Pricing + Key Specs Row */}
+                      <div className="mt-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                        <div>
+                          <span className="text-[9px] text-slate-500 uppercase font-bold tracking-wider block leading-none">
+                            {t('service_starting_at')}
+                          </span>
+                          <span className="text-lg font-black text-slate-900 tracking-tight">
+                            {service.startingPrice}
+                          </span>
+                        </div>
+                        <span className="text-[11px] font-medium text-slate-500 text-right max-w-[170px] leading-tight">
+                          {service.pricePeriod}
+                        </span>
+                      </div>
+
+                      {/* 2 Key Clinical Features Pills */}
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {service.keyFeatures.slice(0, 2).map((feat, fIdx) => (
+                          <span
+                            key={fIdx}
+                            className="text-[10px] font-semibold text-slate-700 bg-slate-100 border border-slate-200/80 px-2 py-0.5 rounded-md inline-flex items-center gap-1"
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                            <span className="truncate max-w-[160px]">{feat}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card Action Footer */}
+                  <div className="p-4 pt-3 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openBooking(service.id);
+                      }}
+                      className="group/btn inline-flex items-center gap-1.5 text-xs font-black text-blue-600 hover:text-blue-700 transition-colors cursor-pointer uppercase tracking-wider"
+                    >
+                      <span>{t('service_book_now')}</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-blue-600 group-hover/btn:translate-x-1 transition-transform duration-300" />
+                    </button>
+
+                    <a
+                      href={`tel:${selectedCity.phone}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-8 h-8 rounded-lg bg-white hover:bg-emerald-600 text-emerald-600 hover:text-white border border-slate-200 transition-all flex items-center justify-center shrink-0 shadow-xs"
+                      title={`Call helpline for ${t(service.titleKey)}`}
+                    >
+                      <Phone className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                </SpotlightCard>
+              </div>
             ))}
           </div>
         </div>
 
-        {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8">
-          {filteredServices.map((service) => {
-            const isExpanded = !!expandedProcedures[service.id];
-            return (
-              <div
-                key={service.id}
-                className="bg-white rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden group hover:-translate-y-1"
+        {/* Continuous Horizontal Scroll Progress Track & Helpline Footer */}
+        <div className="pt-2 shrink-0">
+          <div className="h-[2px] bg-slate-200 relative w-full rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-blue-600 to-teal-500 transition-all duration-150 rounded-full"
+              style={{ width: `${Math.max(12, scrollProgress)}%` }}
+            />
+          </div>
+          
+          <div className="mt-2.5 flex items-center justify-between text-[11px] text-slate-500">
+            <span className="hidden sm:inline">
+              ← Drag or swipe horizontally to explore 24/7 care shifts →
+            </span>
+            <div className="flex items-center gap-1.5 ml-auto">
+              <span>Emergency ICU Standby:</span>
+              <a
+                href={`tel:${selectedCity.emergencyPhone}`}
+                className="text-blue-600 hover:text-blue-700 font-bold underline underline-offset-2"
               >
-                {/* Image Header if available */}
-                {service.imageUrl && (
-                  <div className="relative h-44 sm:h-48 w-full overflow-hidden bg-slate-100">
-                    <Image
-                      src={service.imageUrl}
-                      alt={t(service.titleKey)}
-                      fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 380px"
-                      className="object-cover object-center group-hover:scale-108 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-black/10" />
-                    {service.badge && (
-                      <span className="absolute top-3.5 right-3.5 text-[10px] sm:text-[11px] font-extrabold px-3 py-1 rounded-full bg-blue-600/90 text-white backdrop-blur-md shadow-md border border-white/20">
-                        {service.badge}
-                      </span>
-                    )}
-                    <div className="absolute bottom-3 left-3.5 w-10 h-10 rounded-xl bg-white/95 backdrop-blur-md flex items-center justify-center p-2 shadow-md">
-                      {getServiceIcon(service.iconName)}
-                    </div>
-                  </div>
-                )}
-
-                {/* Card Top */}
-                <div className="p-5 sm:p-7">
-                  {/* Badge & Icon fallback if no image */}
-                  {!service.imageUrl && (
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 rounded-2xl bg-slate-100/90 flex items-center justify-center p-2.5 group-hover:scale-105 transition shrink-0">
-                        {getServiceIcon(service.iconName)}
-                      </div>
-                      {service.badge && (
-                        <span className="text-[10px] sm:text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-                          {service.badge}
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Title & Subtitle */}
-                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 group-hover:text-blue-600 transition">
-                    {t(service.titleKey)}
-                  </h3>
-                  <p className="text-xs text-blue-600 font-semibold mt-0.5">
-                    {t(service.subtitleKey)}
-                  </p>
-
-                  {/* Description */}
-                  <p className="text-xs sm:text-sm text-slate-600 mt-2.5 leading-relaxed">
-                    {t(service.descriptionKey)}
-                  </p>
-
-                  {/* Pricing Badge */}
-                  <div className="mt-4 p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-baseline justify-between">
-                    <div>
-                      <span className="text-[10px] text-slate-500 uppercase font-bold block">{t('service_starting_at')}</span>
-                      <span className="text-lg font-black text-slate-900">{service.startingPrice}</span>
-                    </div>
-                    <span className="text-[11px] font-medium text-slate-500 text-right max-w-[150px]">
-                      {service.pricePeriod}
-                    </span>
-                  </div>
-
-                  {/* Key Features Checklist */}
-                  <div className="mt-4 space-y-2">
-                    {service.keyFeatures.map((feat, idx) => (
-                      <div key={idx} className="flex items-start gap-2 text-xs text-slate-700">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                        <span>{feat}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Expandable Clinical Procedures List */}
-                  {service.clinicalProcedures && service.clinicalProcedures.length > 0 && (
-                    <div className="mt-4 pt-3 border-t border-slate-100">
-                      <button
-                        onClick={() => toggleProcedures(service.id)}
-                        className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center justify-between w-full py-1"
-                      >
-                        <span>{t('service_view_details')}</span>
-                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                      </button>
-
-                      {isExpanded && (
-                        <div className="mt-2 space-y-1.5 pl-2 border-l-2 border-blue-200 animate-fadeIn text-[11px] text-slate-600">
-                          {service.clinicalProcedures.map((proc, pIdx) => (
-                            <div key={pIdx} className="flex items-center gap-1.5">
-                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-                              <span>{proc}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Card Bottom CTA */}
-                <div className="p-5 sm:p-7 pt-0 border-t border-slate-100 bg-slate-50/50 flex items-center gap-2">
-                  <button
-                    onClick={() => openBooking(service.id)}
-                    className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white font-extrabold text-xs sm:text-sm text-center transition shadow-xs hover:shadow-md flex items-center justify-center gap-1.5"
-                  >
-                    <span>{t('service_book_now')}</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-
-                  <a
-                    href={`tel:${selectedCity.phone}`}
-                    className="p-3 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition"
-                    title={`Call for ${t(service.titleKey)}`}
-                  >
-                    <Phone className="w-4 h-4 text-emerald-600" />
-                  </a>
-                </div>
-              </div>
-            );
-          })}
+                {selectedCity.emergencyPhone}
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </section>
