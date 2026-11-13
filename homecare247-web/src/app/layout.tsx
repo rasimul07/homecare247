@@ -4,8 +4,7 @@ import './globals.css';
 import { LanguageProvider } from '@/context/LanguageContext';
 import { LocationProvider } from '@/context/LocationContext';
 import { BookingProvider } from '@/context/BookingContext';
-import { CityModal } from '@/components/CityModal';
-import { BookingModal } from '@/components/BookingModal';
+import { Modals } from '@/components/Modals';
 import { StickyBottomBar } from '@/components/StickyBottomBar';
 import { StructuredData } from '@/components/StructuredData';
 
@@ -111,8 +110,7 @@ export default function RootLayout({
             <BookingProvider>
               <StructuredData />
               {children}
-              <CityModal />
-              <BookingModal />
+              <Modals />
               <StickyBottomBar />
             </BookingProvider>
           </LocationProvider>

@@ -11,9 +11,7 @@ import {
   Building2,
   Phone,
   CheckCircle2,
-  Navigation,
-  ArrowRight,
-  ShieldCheck
+  Navigation
 } from 'lucide-react';
 
 export function CityAvailabilitySection() {

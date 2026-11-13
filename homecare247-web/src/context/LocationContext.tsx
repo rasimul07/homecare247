@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { CityData } from '@/types';
-import { CITIES, DEFAULT_CITY, findClosestCity, getCityById } from '@/data/cities';
+import { DEFAULT_CITY, findClosestCity, getCityById } from '@/data/cities';
 
 interface LocationContextType {
   selectedCity: CityData;

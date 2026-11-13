@@ -4,7 +4,7 @@ import React from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useLocation } from '@/context/LocationContext';
 import { useBooking } from '@/context/BookingContext';
-import { AlertCircle, Phone, MessageCircle, Activity, Ambulance } from 'lucide-react';
+import { Phone, MessageCircle, Activity, Ambulance } from 'lucide-react';
 
 export function EmergencyBanner() {
   const { t } = useLanguage();

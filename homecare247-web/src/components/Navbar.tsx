@@ -36,15 +36,31 @@ export function Navbar() {
     setMounted(true);
   }, []);
 
-  // Prevent background scroll when mobile drawer is open
+  // Zero-CLS Body Scroll Lock and Escape Key Listener for Mobile Drawer
   useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
+    if (!mobileMenuOpen) return;
+
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    const originalOverflow = document.body.style.overflow;
+    const originalPaddingRight = document.body.style.paddingRight;
+
+    document.body.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
     }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = originalOverflow;
+      document.body.style.paddingRight = originalPaddingRight;
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [mobileMenuOpen]);
 
@@ -124,41 +140,41 @@ export function Navbar() {
       </div>
 
       {/* Main Navigation Bar */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 w-full">
-        <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-3 w-full">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4 w-full">
           {/* Brand Logo */}
-          <a href="#" className="flex items-center gap-2 sm:gap-3 group shrink-0 min-w-0">
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-blue-500/25 group-hover:scale-105 transition shrink-0">
-              <HeartPulse className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+          <a href="#" className="flex items-center gap-2 sm:gap-2.5 group shrink-0 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition shrink-0">
+              <HeartPulse className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-white" />
             </div>
             <div className="shrink-0 min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="text-lg sm:text-2xl font-black tracking-tight text-slate-900 leading-none whitespace-nowrap">
+                <span className="text-lg sm:text-xl 2xl:text-2xl font-black tracking-tight text-slate-900 leading-none whitespace-nowrap">
                   HomeCare<span className="text-blue-600">247</span>
                 </span>
                 <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200 uppercase tracking-wide whitespace-nowrap">
                   24/7
                 </span>
               </div>
-              <p className="hidden sm:flex text-xs font-semibold text-slate-500 items-center gap-1.5 mt-1 leading-none whitespace-nowrap">
-                <ShieldCheck className="w-3.5 h-3.5 text-teal-600 shrink-0" />
+              <p className="hidden 2xl:flex text-[11px] font-semibold text-slate-500 items-center gap-1 mt-1 leading-none whitespace-nowrap">
+                <ShieldCheck className="w-3 h-3 text-teal-600 shrink-0" />
                 <span>Verified Clinical Care at Home</span>
               </p>
             </div>
           </a>
 
-          {/* Desktop Nav Links (Visible only on XL screens >= 1280px to guarantee zero overflow) */}
-          <nav className="hidden xl:flex items-center gap-1.5 2xl:gap-3 shrink-0">
+          {/* Desktop Nav Links (Optimized for XL and 2XL to guarantee zero overflow) */}
+          <nav className="hidden xl:flex items-center gap-1 2xl:gap-2 shrink-0">
             <a
               href="#services"
-              className="px-3 py-2 rounded-xl text-xs 2xl:text-sm font-bold text-slate-700 hover:text-blue-600 hover:bg-slate-100 transition whitespace-nowrap shrink-0"
+              className="px-2.5 2xl:px-3 py-2 rounded-xl text-xs 2xl:text-sm font-bold text-slate-700 hover:text-blue-600 hover:bg-slate-100 transition whitespace-nowrap"
             >
               {t('nav_services')}
             </a>
 
             <a
               href="#icu-setup"
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs 2xl:text-sm font-bold text-red-600 hover:text-red-700 hover:bg-red-50 transition whitespace-nowrap shrink-0"
+              className="inline-flex items-center gap-1.5 px-2.5 2xl:px-3 py-2 rounded-xl text-xs 2xl:text-sm font-bold text-red-600 hover:text-red-700 hover:bg-red-50 transition whitespace-nowrap"
             >
               <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />
               <span>{t('nav_icu')}</span>
@@ -166,48 +182,48 @@ export function Navbar() {
 
             <a
               href="#calculator"
-              className="px-3 py-2 rounded-xl text-xs 2xl:text-sm font-bold text-slate-700 hover:text-blue-600 hover:bg-slate-100 transition whitespace-nowrap shrink-0"
+              className="px-2.5 2xl:px-3 py-2 rounded-xl text-xs 2xl:text-sm font-bold text-slate-700 hover:text-blue-600 hover:bg-slate-100 transition whitespace-nowrap"
             >
               {t('nav_calculator')}
             </a>
 
             <a
-              href="#city-availability"
-              className="px-3 py-2 rounded-xl text-xs 2xl:text-sm font-bold text-slate-700 hover:text-blue-600 hover:bg-slate-100 transition whitespace-nowrap shrink-0"
-            >
-              {t('nav_all_cities')}
-            </a>
-
-            <a
               href="#why-us"
-              className="px-3 py-2 rounded-xl text-xs 2xl:text-sm font-bold text-slate-700 hover:text-blue-600 hover:bg-slate-100 transition whitespace-nowrap shrink-0"
+              className="px-2.5 2xl:px-3 py-2 rounded-xl text-xs 2xl:text-sm font-bold text-slate-700 hover:text-blue-600 hover:bg-slate-100 transition whitespace-nowrap"
             >
               {t('nav_why_us')}
             </a>
 
             <a
               href="#testimonials"
-              className="px-3 py-2 rounded-xl text-xs 2xl:text-sm font-bold text-slate-700 hover:text-blue-600 hover:bg-slate-100 transition whitespace-nowrap shrink-0"
+              className="hidden 2xl:inline-block px-3 py-2 rounded-xl text-xs 2xl:text-sm font-bold text-slate-700 hover:text-blue-600 hover:bg-slate-100 transition whitespace-nowrap"
             >
               {t('nav_reviews')}
             </a>
 
             <a
               href="#faqs"
-              className="px-3 py-2 rounded-xl text-xs 2xl:text-sm font-bold text-slate-700 hover:text-blue-600 hover:bg-slate-100 transition whitespace-nowrap shrink-0"
+              className="px-2.5 2xl:px-3 py-2 rounded-xl text-xs 2xl:text-sm font-bold text-slate-700 hover:text-blue-600 hover:bg-slate-100 transition whitespace-nowrap"
             >
               {t('nav_faq')}
+            </a>
+
+            <a
+              href="#city-availability"
+              className="hidden 2xl:inline-block px-3 py-2 rounded-xl text-xs 2xl:text-sm font-bold text-slate-700 hover:text-blue-600 hover:bg-slate-100 transition whitespace-nowrap"
+            >
+              {t('nav_all_cities')}
             </a>
           </nav>
 
           {/* Desktop Right CTAs (Visible on XL+ screens) */}
-          <div className="hidden xl:flex items-center gap-2.5 shrink-0">
+          <div className="hidden xl:flex items-center gap-2 2xl:gap-3 shrink-0">
             {/* WhatsApp */}
             <a
               href={`https://wa.me/${selectedCity.whatsappPhone}?text=Hello%20HomeCare247,%20I%20need%20nursing%20care%20in%20${selectedCity.name}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition text-xs font-bold whitespace-nowrap shrink-0"
+              className="inline-flex items-center gap-1.5 px-2.5 2xl:px-3 py-2 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition text-xs font-bold whitespace-nowrap shrink-0"
               title="Chat on WhatsApp"
             >
               <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -217,16 +233,17 @@ export function Navbar() {
             {/* Call Helpline */}
             <a
               href={`tel:${selectedCity.phone}`}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100 text-blue-700 transition text-xs font-bold whitespace-nowrap shrink-0"
+              className="inline-flex items-center gap-1.5 px-2.5 2xl:px-3 py-2 rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100 text-blue-700 transition text-xs font-bold whitespace-nowrap shrink-0"
             >
               <Phone className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-              <span>{selectedCity.phone}</span>
+              <span className="hidden 2xl:inline">{selectedCity.phone}</span>
+              <span className="2xl:hidden">{selectedCity.phone.replace('+91 ', '')}</span>
             </a>
 
             {/* Book Now Button */}
             <button
               onClick={() => openBooking('skilled-nursing')}
-              className="inline-flex items-center justify-center px-4.5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white font-extrabold text-xs 2xl:text-sm shadow-md shadow-blue-500/20 hover:shadow-lg transition transform hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap shrink-0"
+              className="inline-flex items-center justify-center px-4 2xl:px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white font-extrabold text-xs 2xl:text-sm shadow-md shadow-blue-500/20 hover:shadow-lg transition transform hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap shrink-0"
             >
               <span>{t('nav_book_btn')}</span>
             </button>

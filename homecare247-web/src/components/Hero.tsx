@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { useLanguage } from '@/context/LanguageContext';
 import { useLocation } from '@/context/LocationContext';
 import { useBooking } from '@/context/BookingContext';
@@ -8,7 +9,6 @@ import { SERVICES } from '@/data/services';
 import {
   ShieldCheck,
   Star,
-  Clock,
   Phone,
   MessageCircle,
   MapPin,
@@ -130,6 +130,55 @@ export function Hero() {
                   <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>WhatsApp</span>
                 </a>
+              </div>
+            </div>
+
+            {/* AI Generated Real Hero Image Showcase */}
+            <div className="relative rounded-3xl overflow-hidden border border-slate-200/90 shadow-xl mb-6 sm:mb-8 group bg-slate-900">
+              <div className="relative aspect-[16/9] sm:aspect-[21/10] w-full overflow-hidden">
+                <Image
+                  src="/images/hero-homecare.jpg"
+                  alt="Compassionate HomeCare 24/7 nurse caring for senior patient at home"
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 700px"
+                  className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-transparent" />
+
+                {/* Floating Glassmorphic Badges */}
+                <div className="absolute top-3 left-3 sm:top-4 sm:left-4">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/80 backdrop-blur-md border border-white/20 text-white text-[11px] sm:text-xs font-semibold shadow-lg">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span>24/7 Home Visits Active in {selectedCity.name}</span>
+                  </div>
+                </div>
+
+                <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-600/90 backdrop-blur-md border border-white/20 text-white text-[11px] sm:text-xs font-bold shadow-lg">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>NABH & Police Verified</span>
+                  </div>
+                </div>
+
+                {/* Bottom Caption Overlay */}
+                <div className="absolute bottom-3 left-3 right-3 sm:bottom-4 sm:left-4 sm:right-4 flex items-end justify-between gap-3 text-white">
+                  <div>
+                    <p className="text-xs sm:text-base font-extrabold tracking-tight drop-shadow">
+                      Compassionate Clinical Care in the Comfort of Your Home
+                    </p>
+                    <p className="text-[10px] sm:text-xs text-slate-200 font-medium drop-shadow mt-0.5">
+                      Empowering families with hospital-standard nursing, ICU & geriatric recovery
+                    </p>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-1 bg-amber-400 text-slate-950 px-2.5 py-1 rounded-xl text-xs font-black shrink-0 shadow-md">
+                    <Star className="w-3.5 h-3.5 fill-current" />
+                    <span>4.9 / 5.0</span>
+                  </div>
+                </div>
               </div>
             </div>
 

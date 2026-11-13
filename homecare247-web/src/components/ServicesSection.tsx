@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { useLanguage } from '@/context/LanguageContext';
 import { useLocation } from '@/context/LocationContext';
 import { useBooking } from '@/context/BookingContext';
@@ -106,19 +107,43 @@ export function ServicesSection() {
                 key={service.id}
                 className="bg-white rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden group hover:-translate-y-1"
               >
-                {/* Card Top */}
-                <div className="p-5 sm:p-7">
-                  {/* Badge & Icon */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-100/90 flex items-center justify-center p-2.5 group-hover:scale-105 transition shrink-0">
-                      {getServiceIcon(service.iconName)}
-                    </div>
+                {/* Image Header if available */}
+                {service.imageUrl && (
+                  <div className="relative h-44 sm:h-48 w-full overflow-hidden bg-slate-100">
+                    <Image
+                      src={service.imageUrl}
+                      alt={t(service.titleKey)}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 380px"
+                      className="object-cover object-center group-hover:scale-108 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-black/10" />
                     {service.badge && (
-                      <span className="text-[10px] sm:text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                      <span className="absolute top-3.5 right-3.5 text-[10px] sm:text-[11px] font-extrabold px-3 py-1 rounded-full bg-blue-600/90 text-white backdrop-blur-md shadow-md border border-white/20">
                         {service.badge}
                       </span>
                     )}
+                    <div className="absolute bottom-3 left-3.5 w-10 h-10 rounded-xl bg-white/95 backdrop-blur-md flex items-center justify-center p-2 shadow-md">
+                      {getServiceIcon(service.iconName)}
+                    </div>
                   </div>
+                )}
+
+                {/* Card Top */}
+                <div className="p-5 sm:p-7">
+                  {/* Badge & Icon fallback if no image */}
+                  {!service.imageUrl && (
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 rounded-2xl bg-slate-100/90 flex items-center justify-center p-2.5 group-hover:scale-105 transition shrink-0">
+                        {getServiceIcon(service.iconName)}
+                      </div>
+                      {service.badge && (
+                        <span className="text-[10px] sm:text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                          {service.badge}
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   {/* Title & Subtitle */}
                   <h3 className="text-lg sm:text-xl font-bold text-slate-900 group-hover:text-blue-600 transition">

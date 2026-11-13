@@ -28,6 +28,7 @@ export interface ServiceItem {
   category: 'nursing' | 'elderly' | 'critical' | 'equipment' | 'rehab' | 'diagnostics';
   startingPrice: string;
   pricePeriod: string;
+  imageUrl?: string;
   keyFeatures: string[];
   clinicalProcedures?: string[];
   popularFor: string[];

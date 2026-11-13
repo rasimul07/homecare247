@@ -1,28 +1,95 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation } from '@/context/LocationContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { CITIES } from '@/data/cities';
 import { MapPin, X, Navigation, CheckCircle2, Clock, Users, ArrowRight } from 'lucide-react';
 
 export function CityModal() {
-  const { selectedCity, setSelectedCity, isCityModalOpen, setIsCityModalOpen, detectLocationGPS, isDetecting } = useLocation();
+  const {
+    selectedCity,
+    setSelectedCity,
+    isCityModalOpen,
+    setIsCityModalOpen,
+    detectLocationGPS,
+    isDetecting,
+  } = useLocation();
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
+  const [mounted, setMounted] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  if (!isCityModalOpen) return null;
+  // Mount check for safe portal execution
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  const filteredCities = CITIES.filter((city) =>
-    city.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    city.state.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    city.popularAreas.some((area) => area.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  // Zero-CLS Body Scroll Lock and Escape Key Listener
+  useEffect(() => {
+    if (!isCityModalOpen) return;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    const originalOverflow = document.body.style.overflow;
+    const originalPaddingRight = document.body.style.paddingRight;
+
+    document.body.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsCityModalOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.paddingRight = originalPaddingRight;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isCityModalOpen, setIsCityModalOpen]);
+
+  // Autofocus search input on open
+  useEffect(() => {
+    if (isCityModalOpen) {
+      const timer = setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
+    } else {
+      setSearchQuery('');
+    }
+  }, [isCityModalOpen]);
+
+  // Memoize filtered cities for responsive search
+  const filteredCities = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return CITIES;
+    return CITIES.filter(
+      (city) =>
+        city.name.toLowerCase().includes(query) ||
+        city.state.toLowerCase().includes(query) ||
+        city.popularAreas.some((area) => area.toLowerCase().includes(query))
+    );
+  }, [searchQuery]);
+
+  if (!isCityModalOpen || !mounted) return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-modal-backdrop cursor-pointer"
+      onClick={() => setIsCityModalOpen(false)}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="city-modal-title"
+    >
       <div
-        className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden max-h-[88vh] flex flex-col"
+        className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden max-h-[88vh] flex flex-col animate-modal-card cursor-default"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -32,13 +99,17 @@ export function CityModal() {
               <MapPin className="w-3.5 h-3.5" />
               <span>{t('nav_select_city')}</span>
             </div>
-            <h3 className="text-lg sm:text-xl font-bold text-slate-900">Choose Your Healthcare Location</h3>
-            <p className="text-xs text-slate-500 mt-0.5 hidden sm:block">We customize active caregivers, response time, and local helpline by city.</p>
+            <h3 id="city-modal-title" className="text-lg sm:text-xl font-bold text-slate-900">
+              Choose Your Healthcare Location
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5 hidden sm:block">
+              We customize active caregivers, response time, and local helpline by city.
+            </p>
           </div>
           <button
             onClick={() => setIsCityModalOpen(false)}
             className="p-2 rounded-full hover:bg-slate-200/60 text-slate-500 hover:text-slate-800 transition"
-            aria-label="Close modal"
+            aria-label="Close city selector modal"
           >
             <X className="w-5 h-5" />
           </button>
@@ -48,6 +119,7 @@ export function CityModal() {
         <div className="p-3.5 sm:p-6 border-b border-slate-100 bg-white shrink-0">
           <div className="flex gap-2">
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Search city or area (e.g. Kolkata, Salt Lake, Delhi)..."
               value={searchQuery}
@@ -71,64 +143,70 @@ export function CityModal() {
 
         {/* City List */}
         <div className="p-3.5 sm:p-6 overflow-y-auto space-y-2 sm:space-y-3 divide-y divide-slate-100">
-          {filteredCities.map((city) => {
-            const isSelected = selectedCity.id === city.id;
-            return (
-              <div
-                key={city.id}
-                onClick={() => {
-                  setSelectedCity(city);
-                  setIsCityModalOpen(false);
-                }}
-                className={`pt-3 first:pt-0 cursor-pointer p-3.5 rounded-2xl transition flex items-start justify-between gap-3 group ${
-                  isSelected
-                    ? 'bg-blue-50/80 border border-blue-200'
-                    : 'hover:bg-slate-50 border border-transparent'
-                }`}
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h4 className="text-base font-bold text-slate-900 group-hover:text-blue-600 transition">
-                      {city.name}
-                    </h4>
-                    <span className="text-xs px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-medium">
-                      {city.state}
-                    </span>
-                    {isSelected && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        Selected
+          {filteredCities.length === 0 ? (
+            <div className="text-center py-8 text-slate-500 text-sm">
+              No matching locations found for &ldquo;{searchQuery}&rdquo;.
+            </div>
+          ) : (
+            filteredCities.map((city) => {
+              const isSelected = selectedCity.id === city.id;
+              return (
+                <div
+                  key={city.id}
+                  onClick={() => {
+                    setSelectedCity(city);
+                    setIsCityModalOpen(false);
+                  }}
+                  className={`pt-3 first:pt-0 cursor-pointer p-3.5 rounded-2xl transition flex items-start justify-between gap-3 group ${
+                    isSelected
+                      ? 'bg-blue-50/80 border border-blue-200'
+                      : 'hover:bg-slate-50 border border-transparent'
+                  }`}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="text-base font-bold text-slate-900 group-hover:text-blue-600 transition">
+                        {city.name}
+                      </h4>
+                      <span className="text-xs px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-medium">
+                        {city.state}
                       </span>
-                    )}
+                      {isSelected && (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          Selected
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Stats */}
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1.5 text-xs text-slate-500">
+                      <span className="inline-flex items-center gap-1 text-emerald-700 font-bold bg-emerald-50/80 px-2 py-0.5 rounded text-[11px]">
+                        <Users className="w-3 h-3 text-emerald-600" />
+                        {city.availableStaffCount} Staff on Standby
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-blue-700 font-bold bg-blue-50/80 px-2 py-0.5 rounded text-[11px]">
+                        <Clock className="w-3 h-3 text-blue-600" />
+                        ~{city.avgResponseMinutes} Mins Response
+                      </span>
+                    </div>
+
+                    {/* Coverage */}
+                    <p className="text-[11px] text-slate-500 mt-1.5 line-clamp-1">
+                      <span className="font-semibold text-slate-700">Hub: </span>
+                      {city.address}
+                    </p>
                   </div>
 
-                  {/* Stats */}
-                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1.5 text-xs text-slate-500">
-                    <span className="inline-flex items-center gap-1 text-emerald-700 font-bold bg-emerald-50/80 px-2 py-0.5 rounded text-[11px]">
-                      <Users className="w-3 h-3 text-emerald-600" />
-                      {city.availableStaffCount} Staff on Standby
-                    </span>
-                    <span className="inline-flex items-center gap-1 text-blue-700 font-bold bg-blue-50/80 px-2 py-0.5 rounded text-[11px]">
-                      <Clock className="w-3 h-3 text-blue-600" />
-                      ~{city.avgResponseMinutes} Mins Response
-                    </span>
+                  <div className="shrink-0 flex items-center self-center">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-100 group-hover:bg-blue-600 group-hover:text-white text-slate-400 flex items-center justify-center transition">
+                      <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    </div>
                   </div>
-
-                  {/* Coverage */}
-                  <p className="text-[11px] text-slate-500 mt-1.5 line-clamp-1">
-                    <span className="font-semibold text-slate-700">Hub: </span>
-                    {city.address}
-                  </p>
                 </div>
-
-                <div className="shrink-0 flex items-center self-center">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-100 group-hover:bg-blue-600 group-hover:text-white text-slate-400 flex items-center justify-center transition">
-                    <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
 
         {/* Footer */}
@@ -141,6 +219,7 @@ export function CityModal() {
           </p>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

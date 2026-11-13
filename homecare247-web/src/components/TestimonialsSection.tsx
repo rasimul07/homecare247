@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useLocation } from '@/context/LocationContext';
 import { TESTIMONIALS } from '@/data/testimonials';
-import { Star, ShieldCheck, Heart, MapPin, Quote } from 'lucide-react';
+import { Star, ShieldCheck, MapPin, Quote } from 'lucide-react';
 
 export function TestimonialsSection() {
   const { language, t } = useLanguage();

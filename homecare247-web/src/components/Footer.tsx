@@ -13,8 +13,7 @@ import {
   MapPin,
   Clock,
   Award,
-  CheckCircle2,
-  ExternalLink
+  CheckCircle2
 } from 'lucide-react';
 
 export function Footer() {

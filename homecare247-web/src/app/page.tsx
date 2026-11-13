@@ -1,18 +1,31 @@
 'use client';
 
 import React from 'react';
+import dynamic from 'next/dynamic';
 import { Navbar } from '@/components/Navbar';
 import { Hero } from '@/components/Hero';
 import { EmergencyBanner } from '@/components/EmergencyBanner';
 import { ServicesSection } from '@/components/ServicesSection';
-import { ServiceCostCalculator } from '@/components/ServiceCostCalculator';
-import { CityAvailabilitySection } from '@/components/CityAvailabilitySection';
 import { WhyChooseUs } from '@/components/WhyChooseUs';
 import { HowItWorks } from '@/components/HowItWorks';
-import { DoctorAdvisory } from '@/components/DoctorAdvisory';
-import { TestimonialsSection } from '@/components/TestimonialsSection';
-import { FaqSection } from '@/components/FaqSection';
 import { Footer } from '@/components/Footer';
+
+// Code-split below-the-fold interactive sections for optimized FCP, TBT & Core Web Vitals
+const ServiceCostCalculator = dynamic(
+  () => import('@/components/ServiceCostCalculator').then((mod) => mod.ServiceCostCalculator)
+);
+const CityAvailabilitySection = dynamic(
+  () => import('@/components/CityAvailabilitySection').then((mod) => mod.CityAvailabilitySection)
+);
+const DoctorAdvisory = dynamic(
+  () => import('@/components/DoctorAdvisory').then((mod) => mod.DoctorAdvisory)
+);
+const TestimonialsSection = dynamic(
+  () => import('@/components/TestimonialsSection').then((mod) => mod.TestimonialsSection)
+);
+const FaqSection = dynamic(
+  () => import('@/components/FaqSection').then((mod) => mod.FaqSection)
+);
 
 export default function HomePage() {
   return (

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useBooking } from '@/context/BookingContext';
 import { useLocation } from '@/context/LocationContext';
 import { useLanguage } from '@/context/LanguageContext';
@@ -12,6 +13,8 @@ export function BookingModal() {
   const { isBookingOpen, prefilledServiceId, closeBooking } = useBooking();
   const { selectedCity } = useLocation();
   const { t } = useLanguage();
+  const [mounted, setMounted] = useState(false);
+  const patientInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     patientName: '',
@@ -29,6 +32,12 @@ export function BookingModal() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingRefNumber, setBookingRefNumber] = useState('');
 
+  // Mount check for safe createPortal execution
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Sync props and prefilled service
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
@@ -38,7 +47,43 @@ export function BookingModal() {
     }));
   }, [prefilledServiceId, selectedCity]);
 
-  if (!isBookingOpen) return null;
+  // Zero-CLS Body Scroll Lock and Escape Key Listener
+  useEffect(() => {
+    if (!isBookingOpen) return;
+
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    const originalOverflow = document.body.style.overflow;
+    const originalPaddingRight = document.body.style.paddingRight;
+
+    document.body.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.paddingRight = originalPaddingRight;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isBookingOpen]);
+
+  // Autofocus first input on open
+  useEffect(() => {
+    if (isBookingOpen && !isSubmitted) {
+      const timer = setTimeout(() => {
+        patientInputRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isBookingOpen, isSubmitted]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,10 +126,18 @@ export function BookingModal() {
     closeBooking();
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+  if (!isBookingOpen || !mounted) return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-modal-backdrop cursor-pointer"
+      onClick={handleClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="booking-modal-title"
+    >
       <div
-        className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden max-h-[90vh] flex flex-col"
+        className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden max-h-[90vh] flex flex-col animate-modal-card cursor-default"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -94,13 +147,15 @@ export function BookingModal() {
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>Verified Clinical Protocol</span>
             </div>
-            <h3 className="text-lg sm:text-xl font-bold">{t('modal_title')}</h3>
+            <h3 id="booking-modal-title" className="text-lg sm:text-xl font-bold">
+              {t('modal_title')}
+            </h3>
             <p className="text-xs text-blue-100 mt-0.5 hidden sm:block">{t('modal_sub')}</p>
           </div>
           <button
             onClick={handleClose}
             className="p-2 rounded-full hover:bg-white/20 text-white/80 hover:text-white transition"
-            aria-label="Close"
+            aria-label="Close booking modal"
           >
             <X className="w-5 h-5" />
           </button>
@@ -122,7 +177,9 @@ export function BookingModal() {
                 {bookingRefNumber && (
                   <div className="flex items-center justify-between pb-2 mb-1 border-b border-blue-200/70">
                     <span className="font-bold text-blue-900">Reference Number:</span>
-                    <span className="font-black text-blue-700 bg-white px-2 py-0.5 rounded-md border border-blue-200">{bookingRefNumber}</span>
+                    <span className="font-black text-blue-700 bg-white px-2 py-0.5 rounded-md border border-blue-200">
+                      {bookingRefNumber}
+                    </span>
                   </div>
                 )}
                 <div className="flex items-center justify-between">
@@ -131,7 +188,9 @@ export function BookingModal() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-slate-500">Service:</span>
-                  <span className="font-bold text-blue-700">{SERVICES.find(s => s.id === formData.serviceId)?.category || 'Healthcare'}</span>
+                  <span className="font-bold text-blue-700">
+                    {SERVICES.find((s) => s.id === formData.serviceId)?.category || 'Healthcare'}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-slate-500">Shift:</span>
@@ -162,6 +221,7 @@ export function BookingModal() {
                     {t('modal_patient_name')} *
                   </label>
                   <input
+                    ref={patientInputRef}
                     type="text"
                     required
                     placeholder="e.g. Ratan Sen"
@@ -282,6 +342,7 @@ export function BookingModal() {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -11,6 +11,7 @@ export const SERVICES: ServiceItem[] = [
     category: 'nursing',
     startingPrice: '₹899',
     pricePeriod: 'per visit / ₹1,499 per 12hr shift',
+    imageUrl: '/images/service-nursing.jpg',
     keyFeatures: [
       'GNM & B.Sc Registered Nurses',
       'Doctor supervised medication charts',
@@ -37,6 +38,7 @@ export const SERVICES: ServiceItem[] = [
     category: 'elderly',
     startingPrice: '₹750',
     pricePeriod: 'per 12hr shift / ₹1,350 per 24hr',
+    imageUrl: '/images/service-elderly.jpg',
     keyFeatures: [
       '100% Police & Background Verified Ayahs / Attendants',
       'Compassionate assistance with daily living (ADLs)',
@@ -61,6 +63,7 @@ export const SERVICES: ServiceItem[] = [
     category: 'critical',
     startingPrice: '₹4,999',
     pricePeriod: 'per day (Includes Equipment + ICU Nurse)',
+    imageUrl: '/images/service-icu.jpg',
     keyFeatures: [
       'Intensivist (MD Doctor) home visits & tele-monitoring',
       'Full hospital-grade ICU setup delivered in 4 hours',
@@ -86,6 +89,7 @@ export const SERVICES: ServiceItem[] = [
     category: 'elderly',
     startingPrice: '₹1,200',
     pricePeriod: 'per shift',
+    imageUrl: '/images/service-dementia.jpg',
     keyFeatures: [
       'Certified Dementia & Alzheimer\'s trained caregivers',
       'Wandering & confusion mitigation protocols',
@@ -110,6 +114,7 @@ export const SERVICES: ServiceItem[] = [
     category: 'rehab',
     startingPrice: '₹699',
     pricePeriod: 'per session (45-60 mins)',
+    imageUrl: '/images/service-physio.jpg',
     keyFeatures: [
       'Post-stroke paralysis neuro-rehabilitation',
       'Joint replacement & orthopedic rehab (Knee/Hip)',
@@ -134,6 +139,7 @@ export const SERVICES: ServiceItem[] = [
     category: 'equipment',
     startingPrice: '₹149',
     pricePeriod: 'per day / Monthly rental packages available',
+    imageUrl: '/images/service-equipment.jpg',
     keyFeatures: [
       '100% Sanitized & Hospital-tested medical machines',
       'Free doorstep installation & biomedical demonstration',
@@ -160,6 +166,7 @@ export const SERVICES: ServiceItem[] = [
     category: 'diagnostics',
     startingPrice: '₹299',
     pricePeriod: 'starting test price (Free home sample pickup)',
+    imageUrl: '/images/service-diagnostics.jpg',
     keyFeatures: [
       'Certified phlebotomist painless blood collection at 6 AM',
       'ECG at home with instant cardiologist interpretation',
@@ -185,6 +192,7 @@ export const SERVICES: ServiceItem[] = [
     category: 'nursing',
     startingPrice: '₹1,100',
     pricePeriod: 'per 12hr shift',
+    imageUrl: '/images/service-baby.jpg',
     keyFeatures: [
       'Experienced pediatric nurses & newborn nannies',
       'Post-cesarean wound care and maternal recovery',
