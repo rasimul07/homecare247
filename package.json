@@ -1,0 +1,28 @@
+{
+  "name": "homecare247-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HomeCare247 Full-Stack Monorepo (Mobile App + NestJS Backend + Web Portal)",
+  "workspaces": [
+    "homecare247",
+    "homecare247-backend",
+    "homecare247-web"
+  ],
+  "scripts": {
+    "dev": "concurrently -n \"backend,mobile\" -c \"cyan,magenta\" \"npm run start:dev --workspace=homecare247-backend\" \"npm run dev --workspace=homecare247\"",
+    "dev:all": "concurrently -n \"backend,mobile,web\" -c \"cyan,magenta,blue\" \"npm run start:dev --workspace=homecare247-backend\" \"npm run dev --workspace=homecare247\" \"npm run dev --workspace=homecare247-web\"",
+    "dev:backend": "npm run start:dev --workspace=homecare247-backend",
+    "dev:mobile": "npm run dev --workspace=homecare247",
+    "dev:web": "npm run dev --workspace=homecare247-web",
+    "build": "npm run build --workspaces",
+    "build:backend": "npm run build --workspace=homecare247-backend",
+    "build:mobile": "npm run build --workspace=homecare247",
+    "build:web": "npm run build --workspace=homecare247-web",
+    "seed": "npm run seed --workspace=homecare247-backend",
+    "lint": "npm run lint --workspaces"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
+
