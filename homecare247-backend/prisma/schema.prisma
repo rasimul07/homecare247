@@ -1,0 +1,465 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  DOCTOR
+  NURSE
+  CAREGIVER
+  STAFF
+  CUSTOMER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  PENDING_VERIFICATION
+}
+
+enum WorkerCategory {
+  REGISTERED_NURSE
+  PATIENT_ATTENDANT
+  AYA_CAREGIVER
+  PHYSIOTHERAPIST
+}
+
+enum VerificationStatus {
+  VERIFIED
+  PENDING
+  REJECTED
+  EXPIRED
+}
+
+enum BookingStatus {
+  REQUEST_RECEIVED
+  UNDER_REVIEW
+  CONFIRMED
+  STAFF_ASSIGNED
+  STAFF_EN_ROUTE
+  SERVICE_STARTED
+  SERVICE_COMPLETED
+  CANCELLED
+  REJECTED
+}
+
+enum JobOfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum ShiftStatus {
+  SCHEDULED
+  EN_ROUTE
+  CHECKED_IN
+  CHECKED_OUT
+  MISSED
+  CANCELLED
+}
+
+enum ApplicationStatus {
+  NEW
+  UNDER_REVIEW
+  SHORTLISTED
+  INTERVIEW_SCHEDULED
+  HIRED
+  REJECTED
+}
+
+enum PaymentStatus {
+  PENDING
+  ADVANCE_PAID
+  PAID
+  REFUNDED
+}
+
+enum PaymentMethod {
+  UPI
+  CARD
+  NETBANKING
+  CASH
+}
+
+enum IncidentType {
+  SAFETY_CONCERN
+  PATIENT_DETERIORATION
+  HARASSMENT
+  LATE_ARRIVAL
+  NO_SHOW
+  CLINICAL_ERROR
+  SCOPE_VIOLATION
+  GENERAL_COMPLAINT
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IncidentStatus {
+  OPEN
+  UNDER_INVESTIGATION
+  RESOLVED
+  CLOSED
+}
+
+enum InquiryStatus {
+  NEW
+  CONTACTED
+  RESOLVED
+}
+
+model User {
+  id                     String           @id @default(uuid())
+  email                  String           @unique
+  password               String
+  name                   String
+  phone                  String?
+  role                   Role             @default(CUSTOMER)
+  status                 UserStatus       @default(ACTIVE)
+  avatarUrl              String?
+  city                   String?
+  address                String?
+  pinCode                String?
+  doctorProfile          DoctorProfile?
+  nurseProfile           NurseProfile?
+  customerPatients       PatientProfile[]
+  customerBookings       Booking[]        @relation("CustomerBookings")
+  assignedNurseBookings  Booking[]        @relation("AssignedNurse")
+  assignedDoctorBookings Booking[]        @relation("AssignedDoctor")
+  shifts                 Shift[]
+  clinicalRecords        ClinicalRecord[]
+  jobOffers              JobOffer[]
+  reportedIncidents      IncidentReport[] @relation("ReportedByUser")
+  auditLogs              AuditLog[]
+  invoices               Invoice[]
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+}
+
+model PatientProfile {
+  id                       String    @id @default(uuid())
+  customerId               String
+  customer                 User      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  fullName                 String
+  age                      Int
+  gender                   String    // Male, Female, Other
+  relationship             String    // Father, Mother, Self, Spouse, Child, Other
+  primaryDiagnosis         String?
+  medicalHistory           String?
+  hospitalDischargeSummary String?
+  mobilityStatus           String?   // Bedridden, Wheelchair, Assisted walking, Independent
+  emergencyContactName     String
+  emergencyContactPhone    String
+  bookings                 Booking[]
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+}
+
+model DoctorProfile {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialization  String
+  licenseNumber   String
+  qualification   String
+  experienceYears Int      @default(0)
+  city            String
+  availableDays   String   @default("Mon-Sat")
+  consultationFee Float    @default(1000)
+  bio             String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model NurseProfile {
+  id                       String             @id @default(uuid())
+  userId                   String             @unique
+  user                     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workerCategory           WorkerCategory     @default(REGISTERED_NURSE)
+  qualification            String
+  experienceYears          Int                @default(0)
+  skills                   String             // e.g. ICU care, Tracheostomy, IV infusion, Catheter
+  permittedClinicalTasks   String             // JSON string: tasks legally permitted to execute
+  councilName              String?            // e.g. "West Bengal Nursing Council (WBNC)"
+  councilRegistrationNumber String?           // e.g. "WBNC-RN-55214"
+  councilRegValidity       String?            // e.g. "2028-12-31"
+  registrationStatus       VerificationStatus @default(PENDING)
+  policeVerificationStatus VerificationStatus @default(PENDING)
+  idProofType              String             @default("Aadhaar")
+  idProofNumber            String?
+  idProofVerified          Boolean            @default(false)
+  city                     String             @default("kolkata")
+  serviceAreas             String             @default("[\"Salt Lake\",\"New Town\",\"Ballygunge\"]") // JSON array of areas covered
+  servicePinCodes          String             @default("[\"700064\",\"700091\",\"700019\"]") // JSON array of PIN codes
+  languages                String             @default("[\"Bengali\",\"Hindi\",\"English\"]") // JSON array of languages
+  shiftPreference          String             @default("12d") // 6h, 8h, 12d, 12n, 24h
+  availabilityStatus       String             @default("AVAILABLE") // AVAILABLE, ON_DUTY, ON_LEAVE, UNAVAILABLE
+  rating                   Float              @default(4.9)
+  completedShifts          Int                @default(0)
+  hourlyRate               Float              @default(150)
+  monthlySalary            Float?
+  createdAt                DateTime           @default(now())
+  updatedAt                DateTime           @updatedAt
+}
+
+model ServiceItem {
+  id                     String   @id
+  titleKey               String
+  name                   String
+  division               String   // Nursing Services, Patient Care Services, Elderly Care, Specialised Support
+  category               String   // nursing, elderly, critical, equipment, rehab, diagnostics, aya
+  isClinical             Boolean  @default(false) // TRUE = Registered Nurse only. FALSE = Attendant / Aya permitted.
+  requiredQualification  String   @default("GNM / B.Sc Nursing")
+  startingPrice          Float
+  pricePeriod            String
+  badge                  String?
+  iconName               String
+  keyFeatures            String   // JSON string
+  clinicalProcedures     String?  // JSON string: permitted clinical tasks
+  nonClinicalScope       String?  // JSON string: personal care tasks
+  exclusions             String?  // JSON string: tasks specifically NOT allowed
+  popularFor             String   // JSON string
+  minimumDurationHours   Int      @default(6)
+  isActive               Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  bookings               Booking[]
+}
+
+model CityHub {
+  id                  String   @id
+  name                String
+  state               String   @default("West Bengal")
+  phone               String
+  emergencyPhone      String
+  whatsappPhone       String
+  address             String
+  hubName             String
+  availableStaffCount Int      @default(0)
+  avgResponseMinutes  Int      @default(30)
+  popularAreas        String   // JSON array string: e.g. ["Baruipur", "Sonarpur", "Garia", "Narendrapur", "Jadavpur"]
+  coveredPinCodes     String   // JSON array string: e.g. ["700144", "700150", "700084", "700103"]
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Booking {
+  id                   String           @id @default(uuid())
+  bookingNumber        String           @unique
+  customerId           String?
+  customer             User?            @relation("CustomerBookings", fields: [customerId], references: [id])
+  patientProfileId     String?
+  patientProfile       PatientProfile?  @relation(fields: [patientProfileId], references: [id])
+  patientName          String
+  patientAge           Int?
+  patientGender        String?
+  contactName          String
+  phone                String
+  email                String?
+  cityId               String
+  cityName             String
+  area                 String
+  pinCode              String?
+  address              String?
+  landmark             String?
+  serviceId            String
+  serviceItem          ServiceItem      @relation(fields: [serviceId], references: [id])
+  serviceName          String
+  isClinical           Boolean          @default(false)
+  shiftDuration        String           @default("12d") // 6h, 8h, 12d, 12n, 24h_rotating, 24h_livein, package_7d, package_15d, package_30d
+  patientCondition     String
+  hospitalDischargeInfo String?
+  startDate            String
+  preferredStartTime   String?          @default("08:00 AM")
+  endDate              String?
+  status               BookingStatus    @default(REQUEST_RECEIVED)
+  rejectionReason      String?
+  cancellationReason   String?
+  assignedNurseId      String?
+  assignedNurse        User?            @relation("AssignedNurse", fields: [assignedNurseId], references: [id])
+  assignedDoctorId     String?
+  assignedDoctor       User?            @relation("AssignedDoctor", fields: [assignedDoctorId], references: [id])
+  notes                String?
+  totalAmount          Float?
+  workerPayoutRate     Float?
+  agencyMargin         Float?
+  isEmergency          Boolean          @default(false)
+  consentAcknowledged  Boolean          @default(true)
+  consentTimestamp     DateTime         @default(now())
+  shifts               Shift[]
+  clinicalRecords      ClinicalRecord[]
+  jobOffers            JobOffer[]
+  incidents            IncidentReport[]
+  invoices             Invoice[]
+  auditLogs            AuditLog[]
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+}
+
+model JobOffer {
+  id              String         @id @default(uuid())
+  bookingId       String
+  booking         Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  workerId        String
+  worker          User           @relation(fields: [workerId], references: [id])
+  status          JobOfferStatus @default(PENDING)
+  offeredAt       DateTime       @default(now())
+  respondedAt     DateTime?
+  rejectionReason String?
+}
+
+model Shift {
+  id                   String      @id @default(uuid())
+  bookingId            String
+  booking              Booking     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  staffId              String
+  staff                User        @relation(fields: [staffId], references: [id])
+  shiftDate            String
+  shiftType            String      // 6H, 8H, DAY_12H, NIGHT_12H, 24H_ROTATING, 24H_LIVEIN
+  startTime            String
+  endTime              String
+  status               ShiftStatus @default(SCHEDULED)
+  enRouteTime          DateTime?
+  checkInTime          DateTime?
+  checkOutTime         DateTime?
+  dailyCareReport      String?     // PDF page 5/7: daily service report within authorised role
+  patientVitalsSummary String?
+  notes                String?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+}
+
+model ClinicalRecord {
+  id                     String   @id @default(uuid())
+  bookingId              String
+  booking                Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  recordedById           String
+  recordedBy             User     @relation(fields: [recordedById], references: [id])
+  recordedByName         String
+  recordedByRole         Role
+  bloodPressure          String?  // e.g. "120/80"
+  heartRate              Int?     // e.g. 78
+  spO2                   Float?   // e.g. 98.5
+  temperature            Float?   // e.g. 98.6
+  respiratoryRate        Int?     // e.g. 18
+  bloodSugar             String?  // e.g. "110 mg/dL"
+  clinicalNotes          String
+  doctorRecommendations  String?
+  medicationAdministered String?
+  recordedAt             DateTime @default(now())
+}
+
+model IncidentReport {
+  id                  String           @id @default(uuid())
+  incidentNumber      String           @unique
+  bookingId           String?
+  booking             Booking?         @relation(fields: [bookingId], references: [id])
+  reporterId          String
+  reporter            User             @relation("ReportedByUser", fields: [reporterId], references: [id])
+  reporterRole        Role
+  incidentType        IncidentType
+  severity            IncidentSeverity @default(MEDIUM)
+  description         String
+  patientConditionAtIncident String?
+  escalatedToEmergency Boolean          @default(false)
+  status              IncidentStatus   @default(OPEN)
+  investigationNotes  String?
+  resolutionNotes     String?
+  replacementWorkerId String?
+  resolvedAt          DateTime?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+}
+
+model Invoice {
+  id                 String        @id @default(uuid())
+  invoiceNumber      String        @unique // e.g. "INV-WB-2026-0042"
+  bookingId          String
+  booking            Booking       @relation(fields: [bookingId], references: [id])
+  customerId         String
+  customer           User          @relation(fields: [customerId], references: [id])
+  customerGstin      String?
+  sacCode            String        @default("9993") // SAC 9993 for Healthcare or 9985 for Manpower/Staffing
+  baseAmount         Float
+  workerPayout       Float
+  agencyGrossMargin  Float
+  gstRate            Float         @default(18.0) // 18% GST (9% CGST + 9% SGST in WB)
+  cgstAmount         Float         @default(0)
+  sgstAmount         Float         @default(0)
+  igstAmount         Float         @default(0)
+  totalAmount        Float
+  paymentMethod      PaymentMethod @default(UPI)
+  paymentStatus      PaymentStatus @default(PENDING)
+  paymentReference   String?
+  paidAt             DateTime?
+  invoiceDate        DateTime      @default(now())
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  bookingId String?
+  booking   Booking? @relation(fields: [bookingId], references: [id])
+  actorId   String
+  actor     User     @relation(fields: [actorId], references: [id])
+  actorName String
+  actorRole Role
+  action    String   // e.g. "CONFIRMED_BOOKING", "AUTO_MATCH_STAFF", "EN_ROUTE", "CHECK_IN"
+  details   String?
+  timestamp DateTime @default(now())
+}
+
+model JobApplication {
+  id                 String            @id @default(uuid())
+  applicationNumber  String            @unique
+  fullName           String
+  email              String
+  phone              String
+  roleApplied        String            // "Critical Care Nurse", "General Duty Nurse", "Aya / Patient Attendant", "Physiotherapist"
+  workerCategory     WorkerCategory    @default(REGISTERED_NURSE)
+  qualification      String
+  experienceYears    Int               @default(0)
+  currentCity        String
+  preferredCity      String
+  preferredAreas     String?           // e.g. Baruipur, Sonarpur, Garia, Salt Lake
+  availableImmediate Boolean           @default(true)
+  resumeUrl          String
+  resumeFileName     String
+  resumeFileSize     Int?
+  skills             String?
+  councilRegNumber   String?
+  expectedSalary     String?
+  notes              String?
+  status             ApplicationStatus @default(NEW)
+  reviewNotes        String?
+  reviewedBy         String?
+  interviewDate      DateTime?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+}
+
+model EmergencyRequest {
+  id            String        @id @default(uuid())
+  name          String
+  phone         String
+  city          String
+  area          String?
+  pinCode       String?
+  serviceNeeded String?
+  message       String?
+  isUrgent      Boolean       @default(true)
+  status        InquiryStatus @default(NEW)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
